@@ -6,6 +6,7 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, AsyncIterator, Tuple, List
+from contextlib import asynccontextmanager
 
 import aiosqlite
 import httpx
@@ -18,9 +19,6 @@ OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]  # stored only on the relay server
 DB_PATH = os.environ.get("RELAY_DB", "relay.db")
 USERS_PATH = os.environ.get("USERS_PATH", "users.json")
 PRICES_PATH = os.environ.get("PRICES_PATH", "prices.json")
-
-app = FastAPI()
-
 
 # ----------------------------
 # Hot-reloadable JSON loaders
@@ -88,11 +86,17 @@ CREATE INDEX IF NOT EXISTS idx_request_log_ts ON request_log(ts_utc);
 """
 
 
-@app.on_event("startup")
-async def _startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: initialize database
     async with aiosqlite.connect(DB_PATH) as db:
         await db.executescript(CREATE_SQL)
         await db.commit()
+    yield
+    # Shutdown: nothing needed
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 # ----------------------------
