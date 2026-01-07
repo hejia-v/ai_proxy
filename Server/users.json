@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "user_id": "ming",
+      "token": "relay_tok_xxx_change_me",
+      "requests_per_minute": 60,
+      "burst": 20,
+      "max_concurrent_streams": 2,
+      "daily_usd_limit": 5.0,
+      "daily_total_tokens_limit": 200000
+    }
+  ]
+}
